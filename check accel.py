@@ -9,8 +9,9 @@ def run_wmic_value(key, value):
         return \
             subprocess.check_output(
                 ["wmic", key, "get", value, "/VALUE"]
-            ).decode().strip().split("=")
+            ).decode().strip().split("=")[1]
     except:
+        return ''
         raise subprocess.CalledProcessError("execution error")
 
 
@@ -20,13 +21,12 @@ def run_wmic_value(key, value):
 
 def get_os_version():
     # wmic os get Version
-    values = run_wmic_value("os", "Version")
-    return values[1]
+    return run_wmic_value("os", "Version")
 
 def get_os_bit():
     # wmic os get OSArchitecture
-    values = run_wmic_value("os", "OSArchitecture")
-    return values[1][:2]
+    # wmic cpu get AddressWidth
+    return run_wmic_value("cpu", "AddressWidth")
 
 def get_arch():
     # wmic cpu get Architecture
@@ -39,27 +39,22 @@ def get_arch():
         "6": "ia64",
         "9": "x64",
     }
-    values = run_wmic_value("cpu", "Architecture")
-    return const_arr_arch.get(values[1], "unknown")
+    return const_arr_arch.get(run_wmic_value("cpu", "Architecture"), "unknown")
 
 def support_vt():
 	# wmic cpu get VirtualizationFirmwareEnabled
-    values = run_wmic_value("cpu", "VirtualizationFirmwareEnabled")
-    return "TRUE" == values[1].upper()
+    return "TRUE" == run_wmic_value("cpu", "VirtualizationFirmwareEnabled").upper()
 
 
 def check_vt():
     # wmic os get DataExecutionPrevention_Available
+    dep = "TRUE" == run_wmic_value("os", "DataExecutionPrevention_Available").upper()
+    
     # wmic cpu get SecondLevelAddressTranslationExtensions
+    slat = "TRUE" == run_wmic_value("cpu", "SecondLevelAddressTranslationExtensions").upper()
+    
 	# wmic cpu get VMMonitorModeExtensions
-    values = run_wmic_value("os", "DataExecutionPrevention_Available")
-    dep = "TRUE" == values[1].upper()
-    
-    values = run_wmic_value("cpu", "SecondLevelAddressTranslationExtensions")
-    slat = "TRUE" == values[1].upper()
-    
-    values = run_wmic_value("cpu", "VMMonitorModeExtensions")
-    vmmme = "TRUE" == values[1].upper()
+    vmmme = "TRUE" == run_wmic_value("cpu", "VMMonitorModeExtensions").upper()
     
     return get_os_version().startswith("10.") \
         and "x64" == get_arch() \
@@ -83,6 +78,7 @@ def run_sc_query_run(svr):
             )
         return "4" == arr_values[ arr_values.index("STATE") + 1]
     except:
+        return False
         raise subprocess.CalledProcessError("execution error")
 
 
@@ -100,34 +96,32 @@ def get_cpu_vendor():
 
 def check_accel():
     
-    accel_drive_download = {
-        "intel": r"https://developer.android.com/studio/run/emulator-acceleration#accel-check",
-        "amd": r"https://docs.microsoft.com/zh-cn/xamarin/android/get-started/installation/android-emulator/hardware-acceleration",
+    accel_drive = {
+        "intel": 
+            (
+                "intelhaxm",
+                r"https://github.com/intel/haxm/releases/latest",
+            ),
+        
+        "amd": 
+            (
+                "gvm",
+                r"https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors/releases/latest",
+            ),
     }
     
-    if ("intel" == get_cpu_vendor()):
-        # https://github.com/intel/haxm/releases/latest
-        
-        if (run_sc_query_run("intelhaxm")):
+    if (get_cpu_vendor() in accel_drive):
+        info = accel_drive[ get_cpu_vendor() ]
+        if (run_sc_query_run(info[0])):
             return True
-        #
-        print(
-            "no driver detected!\nplease download from: %s" % accel_drive_download[get_cpu_vendor()]
-        )
-    
-    if ("amd" == get_cpu_vendor()):
-        # https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors/releases/latest
+        else:
+            print(
+                "\nno driver detected!\nplease download from: %s\n\n" % info[1]
+            )
+            return False
         
-        if (run_sc_query_run("gvm")):
-            return True
-        #
-        print(
-            "no driver detected!\nplease download from: %s" % accel_drive_download[get_cpu_vendor()]
-        )
-    
     raise RuntimeError("unknown cpu vendor")
     
-
 
 print(
     "is support VT: %s\nis support accel: %s\n" % (
