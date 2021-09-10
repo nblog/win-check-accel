@@ -84,9 +84,9 @@ def run_sc_query_run(svr):
 
 def get_cpu_vendor():
     if ("GenuineIntel" in os.environ["PROCESSOR_IDENTIFIER"]):
-        return "Intel".lower()
+        return "INTEL"
     if ("AuthenticAMD" in os.environ["PROCESSOR_IDENTIFIER"]):
-        return "AMD".lower()
+        return "AMD"
     return "unknown"
 
 
@@ -97,21 +97,21 @@ def get_cpu_vendor():
 def check_accel():
     
     accel_drive = {
-        "intel": 
+        "INTEL": 
             (
                 "intelhaxm",
                 r"https://github.com/intel/haxm/releases/latest",
             ),
         
-        "amd": 
+        "AMD": 
             (
                 "gvm",
                 r"https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors/releases/latest",
             ),
     }
     
-    if (get_cpu_vendor() in accel_drive):
-        info = accel_drive[ get_cpu_vendor() ]
+    if (get_cpu_vendor().upper() in accel_drive):
+        info = accel_drive[ get_cpu_vendor().upper() ]
         if (run_sc_query_run(info[0])):
             return True
         else:
