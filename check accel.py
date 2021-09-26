@@ -42,7 +42,7 @@ def get_arch():
     return const_arr_arch.get(run_wmic_value("cpu", "Architecture"), "unknown")
 
 def support_vt():
-	# wmic cpu get VirtualizationFirmwareEnabled
+    # wmic cpu get VirtualizationFirmwareEnabled
     return "TRUE" == run_wmic_value("cpu", "VirtualizationFirmwareEnabled").upper()
 
 
@@ -53,7 +53,7 @@ def check_vt():
     # wmic cpu get SecondLevelAddressTranslationExtensions
     slat = "TRUE" == run_wmic_value("cpu", "SecondLevelAddressTranslationExtensions").upper()
     
-	# wmic cpu get VMMonitorModeExtensions
+    # wmic cpu get VMMonitorModeExtensions
     vmmme = "TRUE" == run_wmic_value("cpu", "VMMonitorModeExtensions").upper()
     
     return get_os_version().startswith("10.") \
@@ -119,13 +119,19 @@ def check_accel():
                 "\nno driver detected!\nplease download from: %s\n\n" % info[1]
             )
             return False
-        
+    
     raise RuntimeError("unknown cpu vendor")
     
 
-print(
-    "is support VT: %s\nis support accel: %s\n" % (
-        "yep." if (check_vt()) else "no.",
-        "yep." if (check_accel()) else "no."
+
+if __name__ == "__main__":
+    
+    print(
+        "is support VT: %s\nis support accel: %s\n" % (
+            "yep." if (check_vt()) else "no.",
+            "yep." if (check_accel()) else "no."
+        )
     )
-)
+    
+    import sys
+    sys.exit( 0 ) if (check_vt() and check_accel()) else sys.exit( 1 )
