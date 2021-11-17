@@ -113,7 +113,8 @@ def check_accel():
     if (get_cpu_vendor().upper() in accel_drive):
         info = accel_drive[ get_cpu_vendor().upper() ]
         if (run_sc_query_run(info[0])):
-            return True
+            # cannot coexist with Hyper-v
+            return True & (not run_sc_query_run("vmms"))
         else:
             print(
                 "\nno driver detected!\nplease download from: %s\n\n" % info[1]
