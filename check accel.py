@@ -83,9 +83,9 @@ def run_sc_query_run(svr):
 
 
 def get_cpu_vendor():
-    if ("GenuineIntel" in os.environ["PROCESSOR_IDENTIFIER"]):
+    if ( str(os.environ["PROCESSOR_IDENTIFIER"]).endswith("GenuineIntel") ):
         return "INTEL"
-    if ("AuthenticAMD" in os.environ["PROCESSOR_IDENTIFIER"]):
+    if ( str(os.environ["PROCESSOR_IDENTIFIER"]).endswith("AuthenticAMD") ):
         return "AMD"
     return "unknown"
 
