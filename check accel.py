@@ -41,12 +41,12 @@ def get_arch():
     }
     return const_arr_arch.get(run_wmic_value("cpu", "Architecture"), "unknown")
 
-def support_vt():
+def support_hypervisor():
     # wmic cpu get VirtualizationFirmwareEnabled
     return "TRUE" == run_wmic_value("cpu", "VirtualizationFirmwareEnabled").upper()
 
 
-def check_vt():
+def check_hypervisor():
     # wmic os get DataExecutionPrevention_Available
     dep = "TRUE" == run_wmic_value("os", "DataExecutionPrevention_Available").upper()
     
@@ -59,7 +59,7 @@ def check_vt():
     return get_os_version().startswith("10.") \
         and "x64" == get_arch() \
         and "64" == get_os_bit() \
-        and support_vt() \
+        and support_hypervisor() \
         and dep and slat and vmmme
 
 
@@ -128,11 +128,11 @@ def check_accel():
 if __name__ == "__main__":
     
     print(
-        "is support VT: %s\nis support accel: %s\n" % (
-            "yep." if (check_vt()) else "no.",
+        "is support hypervisor: %s\nis support accel: %s\n" % (
+            "yep." if (check_hypervisor()) else "no.",
             "yep." if (check_accel()) else "no."
         )
     )
     
     import sys
-    sys.exit( 0 ) if (check_vt() and check_accel()) else sys.exit( 1 )
+    sys.exit( 0 ) if (check_hypervisor() and check_accel()) else sys.exit( 1 )
